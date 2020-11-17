@@ -5,12 +5,15 @@ using System.IO;
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 namespace ARPG
 {
     public class Entry : LevelModule
     {
-        static StatHolder info2;
-        static WeaponStatHolder info3;
+        static StatHolder stats;
+        static WeaponStatHolder weaponstats;
+        static TraitsHolder traits;
         public override IEnumerator OnLoadCoroutine(Level level)
         {
             EventManager.onCreatureKill += EventManager_onCreatureKill;
@@ -32,55 +35,80 @@ namespace ARPG
         public override void Update(Level level)
         {
             base.Update(level);
-            if (Player.currentCreature && !Player.currentCreature.gameObject.GetComponent<StatsHandler>())
-                Player.currentCreature.gameObject.AddComponent<StatsHandler>();
+            if (Player.currentCreature && !Player.currentCreature.gameObject.GetComponent<Main>())
+                Player.currentCreature.gameObject.AddComponent<Main>();
         }
         void LoadFromSave()
         {
             try
             {
-                info2 = JsonConvert.DeserializeObject<StatHolder>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/statsave.json")));
-                StatManager.magicEfficiencyExp = info2.magicEfficiencyExp;
-                StatManager.magicDamageExp = info2.magicDamageExp;
-                StatManager.physicalSpeedExp = info2.physicalSpeedExp;
-                StatManager.physicalJumpExp = info2.physicalJumpExp;
-                StatManager.combatStrengthExp = info2.combatStrengthExp;
-                StatManager.combatHealthExp = info2.combatHealthExp;
-                StatManager.miscFocusExp = info2.miscFocusExp;
-                StatManager.combatRangedExp = info2.combatRangedExp;
-                StatManager.survivalExp = info2.survivalExp;
-                StatManager.magicEfficiencyLvl = info2.magicEfficiencyLvl;
-                StatManager.magicDamageLvl = info2.magicDamageLvl;
-                StatManager.physicalSpeedLvl = info2.physicalSpeedLvl;
-                StatManager.physicalJumpLvl = info2.physicalJumpLvl;
-                StatManager.combatStrengthLvl = info2.combatStrengthLvl;
-                StatManager.combatHealthLvl = info2.combatHealthLvl;
-                StatManager.miscFocusLvl = info2.miscFocusLvl;
-                StatManager.combatRangedLvl = info2.combatRangedLvl;
-                StatManager.survivalLvl = info2.survivalLvl;
-                info3 = JsonConvert.DeserializeObject<WeaponStatHolder>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/weaponsave.json")));
-                WeaponStatManager.daggerLvl = info3.daggerLvl;
-                WeaponStatManager.daggerExp = info3.daggerExp;
-                WeaponStatManager.swordLvl = info3.swordLvl;
-                WeaponStatManager.swordExp = info3.swordsExp;
-                WeaponStatManager.spearLvl = info3.spearLvl;
-                WeaponStatManager.spearExp = info3.spearExp;
-                WeaponStatManager.axeLvl = info3.axeLvl;
-                WeaponStatManager.axeExp = info3.axeExp;
-                WeaponStatManager.bluntLvl = info3.bluntLvl;
-                WeaponStatManager.bluntExp = info3.bluntExp;
+                stats = JsonConvert.DeserializeObject<StatHolder>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/statsave.json")));
+                StatManager.magicEfficiencyExp = stats.magicEfficiencyExp;
+                StatManager.magicDamageExp = stats.magicDamageExp;
+                StatManager.physicalSpeedExp = stats.physicalSpeedExp;
+                StatManager.physicalJumpExp = stats.physicalJumpExp;
+                StatManager.combatStrengthExp = stats.combatStrengthExp;
+                StatManager.combatHealthExp = stats.combatHealthExp;
+                StatManager.miscFocusExp = stats.miscFocusExp;
+                StatManager.combatRangedExp = stats.combatRangedExp;
+                StatManager.survivalExp = stats.survivalExp;
+                StatManager.magicEfficiencyLvl = stats.magicEfficiencyLvl;
+                StatManager.magicDamageLvl = stats.magicDamageLvl;
+                StatManager.physicalSpeedLvl = stats.physicalSpeedLvl;
+                StatManager.physicalJumpLvl = stats.physicalJumpLvl;
+                StatManager.combatStrengthLvl = stats.combatStrengthLvl;
+                StatManager.combatHealthLvl = stats.combatHealthLvl;
+                StatManager.miscFocusLvl = stats.miscFocusLvl;
+                StatManager.combatRangedLvl = stats.combatRangedLvl;
+                StatManager.survivalLvl = stats.survivalLvl;
             }
             catch
             {
-                Debug.Log("No save file found.");
+                Debug.Log("No save file found for stats.");
+            }
+            try
+            {
+                weaponstats = JsonConvert.DeserializeObject<WeaponStatHolder>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/weaponsave.json")));
+                WeaponStatManager.daggerLvl = weaponstats.daggerLvl;
+                WeaponStatManager.daggerExp = weaponstats.daggerExp;
+                WeaponStatManager.swordLvl = weaponstats.swordLvl;
+                WeaponStatManager.swordExp = weaponstats.swordsExp;
+                WeaponStatManager.spearLvl = weaponstats.spearLvl;
+                WeaponStatManager.spearExp = weaponstats.spearExp;
+                WeaponStatManager.axeLvl = weaponstats.axeLvl;
+                WeaponStatManager.axeExp = weaponstats.axeExp;
+                WeaponStatManager.bluntLvl = weaponstats.bluntLvl;
+                WeaponStatManager.bluntExp = weaponstats.bluntExp;
+            }
+            catch
+            {
+                Debug.Log("No save file found for weapon stats.");
+            }
+            try
+            {
+                traits = JsonConvert.DeserializeObject<TraitsHolder>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/traitssave.json")));
+                TraitsManager.icy = traits.icy;
+                TraitsManager.icyExp = traits.icyExp;
+                TraitsManager.icyLvl = traits.icyLvl;
+                TraitsManager.inferno = traits.inferno;
+                TraitsManager.infernoExp = traits.infernoExp;
+                TraitsManager.infernoLvl = traits.infernoLvl;
+                TraitsManager.vampirism = traits.vampirism;
+                TraitsManager.vampirismLvl = traits.vampirismLvl;
+                TraitsManager.vampirismExp = traits.vampirismExp;
+            }
+            catch
+            {
+                Debug.Log("No save file found for traits.");
             }
         }
     }
-    public class StatsHandler : MonoBehaviour
+    public class Main : MonoBehaviour
     {
         StatsInfo info;
         static float prevMana, prevFocus, magicDamage, combatDamage;
         float timer1;
+        Dictionary<string, float> statBoosters;
         public enum Stat
         {
             MagicEfficicency,
@@ -98,17 +126,23 @@ namespace ARPG
             info = JsonConvert.DeserializeObject<StatsInfo>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Jsons/Stats.json")));
             prevMana = Player.currentCreature.mana.currentMana;
             prevFocus = Player.currentCreature.mana.currentFocus;
-            EventManager.onCreatureHit += EventManager_onCreatureHitEvent;
+            if (!RPGManager.bindedMainExpEvent)
+                EventManager.onCreatureHit += EventManager_onCreatureHitEvent;
             timer1 = Time.time;
             Player.currentCreature.mana.currentFocus = Player.currentCreature.mana.maxFocus;
             Player.currentCreature.mana.currentMana = Player.currentCreature.mana.maxMana;
             RPGManager.statInfo = info;
+            statBoosters = new Dictionary<string, float>();
+            PerkTraitCheck();
+            ValidateBooster();
+            if (statBoosters.Values.Count < 1)
+                statBoosters.Add("Default", 1);
             UpdateLevels();
+            UpdateStats();
             ValidateLevels();
             SaveGame();
-            PerkCheck();
-            UpdateStats();
             Debug.LogWarning("Stats awoken!");
+            RPGManager.bindedMainExpEvent = true;
         }
         private void EventManager_onCreatureHitEvent(Creature creature, ref CollisionStruct collisionStruct)
         {
@@ -201,14 +235,15 @@ namespace ARPG
                 }
                 if (Player.local.locomotion.velocity != Vector3.zero)
                     StatManager.physicalSpeedExp += 0.05f * Time.deltaTime;
-                if (Player.local.locomotion.velocity.y != 0f)
-                    StatManager.physicalJumpExp += Time.deltaTime;
+                if (Player.local.locomotion.velocity.y > .25f)
+                    StatManager.physicalJumpExp += 0.05f * Time.deltaTime;
                 if (Time.time - timer1 > info.updateLevelTime)
                 {
                     UpdateLevels();
                     ValidateLevels();
                     SaveGame();
-                    PerkCheck();
+                    ValidateBooster();
+                    PerkTraitCheck();
                     UpdateStats();
                     timer1 = Time.time;
                 }
@@ -218,6 +253,7 @@ namespace ARPG
         {
             File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/statsave.json"), JsonConvert.SerializeObject(new StatManager(), Formatting.Indented));
             File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/weaponsave.json"), JsonConvert.SerializeObject(new WeaponStatManager(), Formatting.Indented));
+            File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "Mods/Amnesia RPG/Saves/traitssave.json"), JsonConvert.SerializeObject(new TraitsManager(), Formatting.Indented));
         }
         public void UpdateStats()
         {
@@ -289,37 +325,69 @@ namespace ARPG
                 StatManager.combatRangedLvl += 1;
                 StatManager.combatRangedExp = 0;
             }
+            if (TraitsManager.vampirismExp > (info.startingMaxExp * TraitsManager.vampirismLvl))
+            {
+                TraitsManager.vampirismLvl += 1;
+                TraitsManager.vampirismExp = 0;
+            }
+            if (TraitsManager.icyExp > (info.startingMaxExp * TraitsManager.icyLvl))
+            {
+                TraitsManager.icyLvl += 1;
+                TraitsManager.icyExp = 0;
+            }
+            if (TraitsManager.infernoExp > (info.startingMaxExp * TraitsManager.infernoLvl))
+            {
+                TraitsManager.infernoLvl += 1;
+                TraitsManager.infernoExp = 0;
+            }
         }
-        void PerkCheck()
+        void PerkTraitCheck()
         {
-            /*if (StatManager.miscFocusLvl > 50 && !Player.currentCreature.gameObject.GetComponent<FocusReflexes>())
+            if (StatManager.miscFocusLvl > 50 && !Player.currentCreature.gameObject.GetComponent<FocusReflexes>())
                 Player.currentCreature.gameObject.AddComponent<FocusReflexes>();
             if (StatManager.miscFocusLvl > 20 && !Player.currentCreature.gameObject.GetComponent<FocusEnhance>())
-                Player.currentCreature.gameObject.AddComponent<FocusEnhance>();*/
+                Player.currentCreature.gameObject.AddComponent<FocusEnhance>();
             if (StatManager.combatHealthLvl > 20 && !Player.currentCreature.gameObject.GetComponent<CombatRegeneration>())
                 Player.currentCreature.gameObject.AddComponent<CombatRegeneration>();
+            if (TraitsManager.vampirism && !Player.currentCreature.gameObject.GetComponent<VampirismBoth>())
+                Player.currentCreature.gameObject.AddComponent<VampirismBoth>();
+            if (TraitsManager.icy && !Player.currentCreature.gameObject.GetComponent<IcyPlayer>())
+                Player.currentCreature.gameObject.AddComponent<IcyPlayer>();
+        }
+        void ValidateBooster()
+        {
+            if (Player.currentCreature.gameObject.GetComponent<VampirismBoth>())
+            {
+                if (!statBoosters.ContainsKey("Vampirism"))
+                    statBoosters.Add("Vampirism", VampirismBoth.blood / 50);
+                else
+                {
+                    statBoosters.Remove("Vampirism");
+                    statBoosters.Add("Vampirism", VampirismBoth.blood / 50);
+                }
+            }
         }
         void ValidateLevels()
         {
-            Player.currentCreature.maxHealth = 16 + ((StatManager.combatHealthLvl * 1f) - 1f);
-            Player.currentCreature.mana.maxMana = 50 + ((StatManager.magicEfficiencyLvl * 2) - 2);
-            Player.currentCreature.mana.chargeSpeedMultiplier = 1 + ((StatManager.magicEfficiencyLvl * 0.1f) - 0.1f);
-            Player.currentCreature.mana.maxFocus = 20 + ((StatManager.miscFocusLvl * 2) - 2);
-            combatDamage = 1f + ((StatManager.combatStrengthLvl * 0.5f) - 0.5f);
-            magicDamage = ((StatManager.magicDamageLvl * 2) - 2);
-            float speedIncrease = Mathf.Min(1 + ((StatManager.physicalSpeedLvl * 0.08f) - 0.08f), 3.5f);
-            Player.local.locomotion.runSpeedMultiplier = speedIncrease;
-            Player.local.locomotion.speedMultiplier = Mathf.Min(speedIncrease * 0.8f, 1.5f);
-            float jumpIncrease = Mathf.Min(0.5f + ((StatManager.physicalJumpLvl * 0.1f) - 0.1f), 2);
-            Player.local.locomotion.jumpMaxDuration = jumpIncrease / 4f;
-            Player.local.locomotion.jumpGroundForce = jumpIncrease / 3.5f;
+            Player.currentCreature.maxHealth = 16 + ((StatManager.combatHealthLvl * 1f) - 1f) * statBoosters.Values.Sum();
+            Player.currentCreature.mana.maxMana = 50 + ((StatManager.magicEfficiencyLvl * 2) - 2) * statBoosters.Values.Sum();
+            Player.currentCreature.mana.chargeSpeedMultiplier = 1 + ((StatManager.magicEfficiencyLvl * 0.1f) - 0.1f) * statBoosters.Values.Sum();
+            Player.currentCreature.mana.maxFocus = 20 + ((StatManager.miscFocusLvl * 2) - 2) * statBoosters.Values.Sum();
+            combatDamage = 1f + ((StatManager.combatStrengthLvl * 0.5f) - 0.5f) * statBoosters.Values.Sum();
+            magicDamage = ((StatManager.magicDamageLvl * 2) - 2) * statBoosters.Values.Sum();
+            float speedIncrease = Mathf.Min(0.7f + ((StatManager.physicalSpeedLvl * 0.08f) - 0.08f) * statBoosters.Values.Sum(), 3.5f);
+            Player.local.locomotion.runSpeedMultiplier = (speedIncrease / 1.2f) * statBoosters.Values.Sum();
+            Player.local.locomotion.speedMultiplier = Mathf.Min(speedIncrease * 0.8f, 1f) * statBoosters.Values.Sum();
+            float jumpIncrease = Mathf.Min(0.5f + ((StatManager.physicalJumpLvl * 0.1f) * statBoosters.Values.Sum() - 0.1f), 1);
+            Player.local.locomotion.jumpMaxDuration = jumpIncrease / 3.5f * statBoosters.Values.Sum();
+            Player.local.locomotion.jumpGroundForce = jumpIncrease / 1.7f * statBoosters.Values.Sum();
             Player.local.locomotion.airSpeed = jumpIncrease;
             Player.local.locomotion.jumpClimbMultiplier = Mathf.Min(jumpIncrease / 2, 1);
-            Player.currentCreature.mana.manaRegen = 4 + ((StatManager.magicEfficiencyLvl * 0.5f) - 0.5f);
-            GameManager.options.handlePositionDamperMultiplier = Mathf.RoundToInt(40 + ((StatManager.combatStrengthLvl * 1f) - 1f));
-            GameManager.options.handlePositionSpringMultiplier = Mathf.RoundToInt(40 + ((StatManager.combatStrengthLvl * 1f) - 1f));
-            GameManager.options.handleRotationDamperMultiplier = Mathf.RoundToInt(40 + ((StatManager.combatStrengthLvl * 1f) - 1f));
-            GameManager.options.handleRotationSpringMultiplier = Mathf.RoundToInt(40 + ((StatManager.combatStrengthLvl * 1f) - 1f));
+            Player.currentCreature.mana.manaRegen = 4 + ((StatManager.magicEfficiencyLvl * 0.5f) - 0.5f) * statBoosters.Values.Sum();
+            GameManager.options.handlePositionDamperMultiplier = Mathf.RoundToInt(20 + ((StatManager.combatStrengthLvl * 1f) - 1f) * statBoosters.Values.Sum());
+            GameManager.options.handlePositionSpringMultiplier = Mathf.RoundToInt(20 + ((StatManager.combatStrengthLvl * 1f) - 1f) * statBoosters.Values.Sum());
+            GameManager.options.handleRotationDamperMultiplier = Mathf.RoundToInt(20 + ((StatManager.combatStrengthLvl * 1f) - 1f) * statBoosters.Values.Sum());
+            GameManager.options.handleRotationSpringMultiplier = Mathf.RoundToInt(20 + ((StatManager.combatStrengthLvl * 1f) - 1f) * statBoosters.Values.Sum());
             if (StatManager.combatStrengthLvl >= 20)
                 GameManager.options.handleForceXYZ = true;
             else
@@ -327,23 +395,22 @@ namespace ARPG
             GameManager.options.Apply();
             CreatureData maleData = Catalog.GetData<CreatureData>("PlayerDefaultMale");
             CreatureData femaleData = Catalog.GetData<CreatureData>("PlayerDefaultFemale");
-            maleData.forcePositionSpringDamper = new Vector2(3750 + (combatDamage * StatManager.combatStrengthLvl), 100);
-            maleData.forceRotationSpringDamper = new Vector2(750 + (combatDamage * StatManager.combatStrengthLvl), 50);
-            maleData.climbingForceMaxPosition = 1000 + (combatDamage * StatManager.combatStrengthLvl);
-            maleData.climbingForceMaxRotation = 100 + (combatDamage * StatManager.combatStrengthLvl);
-            maleData.gripForceMaxPosition = 750 + (combatDamage * StatManager.combatStrengthLvl);
-            maleData.gripForceMaxRotation = 75 + (combatDamage * StatManager.combatStrengthLvl);
-            maleData.health = Convert.ToInt16(16 + ((StatManager.combatHealthLvl * 1) - 1f));
-            maleData.focus = 20 + ((StatManager.miscFocusLvl * 2) - 2);
-            femaleData.forcePositionSpringDamper = new Vector2(3750 + (combatDamage * StatManager.combatStrengthLvl), 100);
-            femaleData.forceRotationSpringDamper = new Vector2(750 + (combatDamage * StatManager.combatStrengthLvl), 50);
-            femaleData.climbingForceMaxPosition = 1000 + (combatDamage * StatManager.combatStrengthLvl);
-            femaleData.climbingForceMaxRotation = 100 + (combatDamage * StatManager.combatStrengthLvl);
-            femaleData.gripForceMaxPosition = 750 + (combatDamage * StatManager.combatStrengthLvl);
-            femaleData.gripForceMaxRotation = 75 + (combatDamage * StatManager.combatStrengthLvl);
-            femaleData.health = Convert.ToInt16(16 + ((StatManager.combatHealthLvl * 1f) - 1f));
-            femaleData.focus = 20 + ((StatManager.miscFocusLvl * 2) - 2);
-            Catalog.GetData<SpellPowerSlowTime>("SlowTime").scale = Mathf.Clamp(50 - (StatManager.miscFocusLvl * 2), 0.05f, 1);
+            maleData.forcePositionSpringDamper = new Vector2(3750 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum(), 100);
+            maleData.forceRotationSpringDamper = new Vector2(750 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum(), 50);
+            maleData.climbingForceMaxPosition = 1000 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            maleData.climbingForceMaxRotation = 100 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            maleData.gripForceMaxPosition = 750 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            maleData.gripForceMaxRotation = 75 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            maleData.health = Convert.ToInt16(16 + ((StatManager.combatHealthLvl * 1) - 1f) * statBoosters.Values.Sum());
+            maleData.focus = 20 + ((StatManager.miscFocusLvl * 2) - 2) * statBoosters.Values.Sum();
+            femaleData.forcePositionSpringDamper = new Vector2(3750 + (combatDamage * StatManager.combatStrengthLvl), 100) * statBoosters.Values.Sum();
+            femaleData.forceRotationSpringDamper = new Vector2(750 + (combatDamage * StatManager.combatStrengthLvl), 50) * statBoosters.Values.Sum();
+            femaleData.climbingForceMaxPosition = 1000 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            femaleData.climbingForceMaxRotation = 100 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            femaleData.gripForceMaxPosition = 750 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            femaleData.gripForceMaxRotation = 75 + (combatDamage * StatManager.combatStrengthLvl) * statBoosters.Values.Sum();
+            femaleData.health = Convert.ToInt16(16 + ((StatManager.combatHealthLvl * 1f) - 1f) * statBoosters.Values.Sum());
+            femaleData.focus = 20 + ((StatManager.miscFocusLvl * 2) - 2) * statBoosters.Values.Sum();
             SpellTelekinesis tk = Catalog.GetData<SpellTelekinesis>("Telekinesis");
             tk.maxAngle = 40 + ((StatManager.magicEfficiencyLvl * 1) - 1);
             tk.throwMultiplier = 2 + ((StatManager.magicEfficiencyLvl * .3f) - .3f);
@@ -518,6 +585,7 @@ namespace ARPG
                 php.GetCustomReference("Top").GetComponent<Text>().text = "Stats";
                 php.GetCustomReference("Middle").GetComponent<Text>().text = "Magic efficiency: " + StatManager.magicEfficiencyLvl + ". Magic damage: " + StatManager.magicDamageLvl;
                 php.GetCustomReference("Bottom").GetComponent<Text>().text = "Combat damage: " + StatManager.combatStrengthLvl + ". Combat health: " + StatManager.combatHealthLvl;
+
             }
         }
     }

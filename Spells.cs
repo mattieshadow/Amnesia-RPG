@@ -1,9 +1,6 @@
 ﻿using ThunderRoad;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using System.Data.SqlTypes;
-
 namespace ARPG
 {
     public class RuneSpell : SpellCastProjectile

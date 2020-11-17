@@ -8,46 +8,17 @@ namespace ARPG
     public class InjurySystem : LevelModule
     {
         public bool braindeadInjury, bleedingoutAllowed, concussionAllowed, legInjuries, armInjuries, breakableNecks, spineParalysis;
-        public float legBreakDamage, armBreakDamage, neckBreakDamage, damageToParalyze, concussionSkullBreakDamage, damageToDestroyLarynx, minStamina = 0.4f, bleedMult, secondsBetweenConcussionTrips, timeBeforeDespawn, chanceOfSeizure;
+        public float legBreakDamage, armBreakDamage, neckBreakDamage, damageToParalyze, concussionSkullBreakDamage, damageToDestroyLarynx, minStamina = 0.4f, bleedMult = 1.7f, secondsBetweenConcussionTrips, timeBeforeDespawn;
         public int maxConcussionStacks, maxArmandLegStacks;
         public override IEnumerator OnLoadCoroutine(Level level)
         {
             EventManager.onCreatureHit += EventManager_onCreatureHitEvent;
-            EventManager.onCreatureKill += EventManager_onCreatureKillEvent;
-
-            braindeadInjury = true;
-            bleedingoutAllowed = true;
-            concussionAllowed = true;
-            legInjuries = true;
-            armInjuries = true;
-            breakableNecks = true;
-            spineParalysis = true;
-            legBreakDamage = 3f;
-            armBreakDamage = 3f;
-            neckBreakDamage = 20f;
-            damageToParalyze = 10f;
-            concussionSkullBreakDamage = 8f;
-            damageToDestroyLarynx = 10f;
-            minStamina = 0.4f;
-            bleedMult = 1.7f;
-            secondsBetweenConcussionTrips = 100f;
-            timeBeforeDespawn = 20f;
-            maxConcussionStacks = 30;
-            maxArmandLegStacks = 50;
-            chanceOfSeizure = 10;
-
-            InjuryManager.maxArmandLegStacks = maxArmandLegStacks;
-            InjuryManager.maxConcussionStacks = maxConcussionStacks;
+            InjuryManager.bleedDamage = bleedMult;
             InjuryManager.minStamina = minStamina;
-            InjuryManager.npcRegeneration = true;
-            InjuryManager.npcRegenPerSecond = 1;
-            InjuryManager.playerRegeneration = true;
-            InjuryManager.playerRegenPerSecond = 5;
-            InjuryManager.slowDeaths = true;
-            InjuryManager.slowDeathSpeed = 0.2f;
-            InjuryManager.timeBeforeDespawn = timeBeforeDespawn;
             InjuryManager.tripTime = secondsBetweenConcussionTrips;
-
+            InjuryManager.maxConcussionStacks = maxConcussionStacks;
+            InjuryManager.maxArmandLegStacks = maxArmandLegStacks;
+            InjuryManager.timeBeforeDespawn = timeBeforeDespawn;
             Debug.LogWarning("Injury system awoken");
             return base.OnLoadCoroutine(level);
         }
@@ -65,94 +36,78 @@ namespace ARPG
                     {
                         float x = collisionStruct.damageStruct.damage / concussionSkullBreakDamage;
                         creature.gameObject.GetComponent<Systems>().currentStacks += Mathf.RoundToInt(x);
-                        Debug.Log("Concussion");
-
-                        creature.ragdoll.SetState(Ragdoll.State.Destabilized);
-
-                        float y = Random.Range(0, 100);
-                        if(y <= chanceOfSeizure)
-                            creature.brain.TryAction(new ActionShock(0.5f, 10, null));
                     }
                     if (braindeadInjury && collisionStruct.damageStruct.damageType == DamageType.Pierce && collisionStruct.damageStruct.hitRagdollPart == creature.ragdoll.GetPart(RagdollPart.Type.Head))
                     {
                         creature.Kill();
-                        Debug.Log("Braindead Injury");
                     }
                     if (collisionStruct.damageStruct.damageType != DamageType.Energy)
                         if (collisionStruct.damageStruct.hitRagdollPart == creature.ragdoll.GetPart(RagdollPart.Type.Neck))
                         {
                             creature.gameObject.GetComponent<Systems>().destroyedLarynx = true;
                             creature.ragdoll.SetState(Ragdoll.State.Destabilized);
-                            Debug.Log("Broken Larynx");
                         }
                     if (bleedingoutAllowed && collisionStruct.damageStruct.damageType != DamageType.Energy && collisionStruct.damageStruct.damageType != DamageType.Blunt)
                     {
                         if (collisionStruct.damageStruct.hitRagdollPart == creature.ragdoll.GetPart(RagdollPart.Type.Neck))
                         {
-                            /*EffectInstance effect = Catalog.GetData<EffectData>("DropBlood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
+                            EffectInstance effect = Catalog.GetData<EffectData>("Blood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
                             effect.SetIntensity(1);
-                            effect.Play();*/
+                            effect.Play();
                             if (!creature.gameObject.GetComponent<Bleedingout>())
                             {
                                 creature.gameObject.AddComponent<Bleedingout>();
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage = bleedMult;
+                                src.bleedDamage = collisionStruct.damageStruct.damage;
                                 src.stacks = 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                             else
                             {
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage = bleedMult * 2;
+                                src.bleedDamage += collisionStruct.damageStruct.damage * 2f;
                                 src.stacks += 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                         }
                         if (collisionStruct.damageStruct.hitRagdollPart == creature.ragdoll.GetPart(RagdollPart.Type.Head))
                         {
-                            /*EffectInstance effect = Catalog.GetData<EffectData>("DropBlood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
-                            effect.SetIntensity(1);
-                            effect.Play();*/
+                            EffectInstance effect = Catalog.GetData<EffectData>("Blood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
+                            effect.Play();
                             if (!creature.gameObject.GetComponent<Bleedingout>())
                             {
                                 creature.gameObject.AddComponent<Bleedingout>();
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage = bleedMult / 3f;
+                                src.bleedDamage = collisionStruct.damageStruct.damage / 3f;
                                 src.stacks = 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                             else
                             {
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage = bleedMult / 2;
+                                src.bleedDamage += collisionStruct.damageStruct.damage / 2;
                                 src.stacks += 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                         }
                         if (collisionStruct.damageStruct.hitRagdollPart == creature.ragdoll.GetPart(RagdollPart.Type.Torso))
                         {
-                            /*EffectInstance effect = Catalog.GetData<EffectData>("DropBlood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
-                              effect.SetIntensity(1);
-                              effect.Play();
-
-                              EffectInstance _effect = Catalog.GetData<EffectData>("DropBlood").Spawn(creature.speak.jaw.position, Quaternion.LookRotation(creature.speak.jaw.forward), creature.ragdoll.headPart.transform);
-                              _effect.SetIntensity(4);
-                              _effect.Play();*/
-
+                            EffectInstance effect = Catalog.GetData<EffectData>("Blood").Spawn(collisionStruct.contactPoint, Quaternion.identity, collisionStruct.damageStruct.hitRagdollPart.transform);
+                            effect.Play();
                             if (!creature.gameObject.GetComponent<Bleedingout>())
                             {
                                 creature.gameObject.AddComponent<Bleedingout>();
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage = bleedMult / 5.5f;
+                                src.bleedDamage = collisionStruct.damageStruct.damage / 5.5f;
                                 src.stacks = 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                             else
                             {
                                 Bleedingout src = creature.gameObject.GetComponent<Bleedingout>();
-                                src.bleedDamage += bleedMult / 3;
+                                src.bleedDamage += collisionStruct.damageStruct.damage / 3;
                                 src.stacks += 1;
-                                //src.effects.Add(effect);
+                                src.effects.Add(effect);
                             }
                         }
                     }
@@ -163,7 +118,6 @@ namespace ARPG
                             {
                                 creature.gameObject.AddComponent<BrokenLeftLeg>();
                                 creature.gameObject.GetComponent<BrokenLeftLeg>().currentStacks += Mathf.RoundToInt(collisionStruct.damageStruct.damage / legBreakDamage);
-                                creature.gameObject.GetComponent<BrokenLeftLeg>().permanent = true;
                             }
                             else
                             {
@@ -174,7 +128,6 @@ namespace ARPG
                             {
                                 creature.gameObject.AddComponent<BrokenRightLeg>();
                                 creature.gameObject.GetComponent<BrokenRightLeg>().currentStacks += Mathf.RoundToInt(collisionStruct.damageStruct.damage / legBreakDamage);
-                                creature.gameObject.GetComponent<BrokenRightLeg>().permanent = true;
                             }
                             else
                             {
@@ -188,7 +141,6 @@ namespace ARPG
                             {
                                 creature.gameObject.AddComponent<BrokenLeftArm>();
                                 creature.gameObject.GetComponent<BrokenLeftArm>().currentStacks += Mathf.RoundToInt(collisionStruct.damageStruct.damage / armBreakDamage);
-                                creature.gameObject.GetComponent<BrokenLeftArm>().permanent = true;
                             }
                             else
                             {
@@ -199,7 +151,6 @@ namespace ARPG
                             {
                                 creature.gameObject.AddComponent<BrokenRightArm>();
                                 creature.gameObject.GetComponent<BrokenRightArm>().currentStacks += Mathf.RoundToInt(collisionStruct.damageStruct.damage / armBreakDamage);
-                                creature.gameObject.GetComponent<BrokenRightArm>().permanent = true;
                             }
                             else
                             {
@@ -216,12 +167,6 @@ namespace ARPG
                 }
             }
         }
-
-        private void EventManager_onCreatureKillEvent(Creature creature, Player player, ref CollisionStruct collisionStruct, EventTime eventTime)
-        {
-            creature.brain.TryAction(new ActionShock(0.1f, 4, null));
-        }
-
         public override void Update(Level level)
         {
             base.Update(level);
@@ -242,25 +187,6 @@ namespace ARPG
                             victim.ragdoll.SetState(Ragdoll.State.Destabilized);
                 }
             }
-
-            foreach(Item item in Item.list)
-            {
-                if(item.IsHanded())
-                {
-                    if (Vector3.Distance(item.transform.position, Player.currentCreature.ragdoll.GetPart(new RagdollPart.Type[] { RagdollPart.Type.LeftArm }).transform.position + Player.currentCreature.ragdoll.GetPart(new RagdollPart.Type[] { RagdollPart.Type.LeftArm }).transform.up * 0.1f) < 0.1f || Vector3.Distance(item.transform.position, Player.currentCreature.ragdoll.GetPart(new RagdollPart.Type[] { RagdollPart.Type.RightArm }).transform.position + Player.currentCreature.ragdoll.GetPart(new RagdollPart.Type[] { RagdollPart.Type.RightArm }).transform.up * 0.1f) < 0.1f)
-                    {
-                        foreach (Paintable p in item.paintables)
-                        {
-                            p.Clear();
-                        }
-                    }
-                }
-            }
-
-            bleedMult = StatManager.combatStrengthLvl;
-            legBreakDamage = 1f * bleedMult;
-            armBreakDamage = 1f * bleedMult;
-            InjuryManager.bleedDamage = bleedMult;
         }
     }
     public class BrokenRightArm : MonoBehaviour
@@ -268,11 +194,10 @@ namespace ARPG
         Creature creature;
         public int currentStacks;
         float timer;
-        public bool permanent = false;
+        bool permanent = false;
         private void Awake()
         {
             creature = gameObject.GetComponentInParent<Creature>();
-            Debug.Log("Broken Right Arm");
         }
         private void Update()
         {
@@ -315,11 +240,10 @@ namespace ARPG
         Creature creature;
         public int currentStacks;
         float timer;
-        public bool permanent = false;
+        bool permanent = false;
         private void Awake()
         {
             creature = gameObject.GetComponentInParent<Creature>();
-            Debug.Log("Broken Left Arm");
         }
         private void Update()
         {
@@ -362,11 +286,10 @@ namespace ARPG
         Creature creature;
         public int currentStacks;
         float timer;
-        public bool permanent = false;
+        bool permanent = false;
         private void Awake()
         {
             creature = gameObject.GetComponentInParent<Creature>();
-            Debug.Log("Broken Left Leg");
         }
         private void Update()
         {
@@ -402,7 +325,6 @@ namespace ARPG
             {
                 creature.ragdoll.GetPart(RagdollPart.Type.LeftLeg).DisableCharJointLimit();
             }
-            creature.ragdoll.SetState(Ragdoll.State.Destabilized);
         }
     }
     public class BrokenRightLeg : MonoBehaviour
@@ -410,11 +332,10 @@ namespace ARPG
         Creature creature;
         public int currentStacks;
         float timer;
-        public bool permanent = false;
+        bool permanent = false;
         private void Awake()
         {
             creature = gameObject.GetComponentInParent<Creature>();
-            Debug.Log("Broken Right Leg");
         }
         private void Update()
         {
@@ -451,7 +372,6 @@ namespace ARPG
 
                 creature.ragdoll.GetPart(RagdollPart.Type.RightLeg).DisableCharJointLimit();
             }
-            creature.ragdoll.SetState(Ragdoll.State.Destabilized);
         }
     }
     public class Systems : MonoBehaviour
@@ -472,8 +392,6 @@ namespace ARPG
         }
         public void Update()
         {
-            creature.maxHealth = 500f;
-            creature.currentHealth = 500f;
             try
             {
                 if (!isPlayer)
@@ -496,9 +414,7 @@ namespace ARPG
                     if (creature.currentHealth <= creature.maxHealth && InjuryManager.npcRegeneration)
                         creature.currentHealth += creature.maxHealth * (InjuryManager.npcRegenPerSecond / 100) * Time.deltaTime;
                     if (destroyedLarynx)
-                    {
                         creature.groundStabilizationMinDuration = 1f;
-                    }
                     if (currentStacks >= InjuryManager.maxConcussionStacks)
                         creature.Kill();
                     if (currentStacks > 0)
@@ -544,24 +460,17 @@ namespace ARPG
         public void Awake()
         {
             creature = gameObject.GetComponentInParent<Creature>();
-            Debug.Log("BLEEDOUT");
-            creature.brain.TryAction(new ActionShock(0.2f, 10, null));
-            creature.ragdoll.SetState(Ragdoll.State.Destabilized);
         }
-
         public void Update()
         {
             if (creature.isKilled || creature == null)
             {
                 Destroy(creature.gameObject.GetComponent<Bleedingout>());
-                //foreach (EffectInstance effect in effects)
-                //    effect.Despawn();
+                foreach (EffectInstance effect in effects)
+                    effect.Despawn();
             }
             if (creature.currentHealth > 0)
-            {
-                creature.ragdoll.SetState(Ragdoll.State.Destabilized);
                 creature.currentHealth -= (bleedDamage + (stacks * InjuryManager.bleedDamage)) * Time.deltaTime;
-            }
             else
             {
                 creature.Kill();
@@ -615,7 +524,7 @@ namespace ARPG
             if (Time.time - thetime > InjuryManager.timeBeforeDespawn)
                 if (victim.isKilled)
                 {
-                    //victim.Despawn();
+                    victim.Despawn();
                     Destroy(victim.gameObject.GetComponent<DespawnScript>());
                 }
                 else

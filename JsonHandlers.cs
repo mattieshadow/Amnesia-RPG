@@ -20,5 +20,7 @@
     {
         public static StatsInfo statInfo;
         public static TerrainInfo terrainInfo;
+        public static bool bindedMainExpEvent;
+        public static bool bindedIceEvent;
     }
 }

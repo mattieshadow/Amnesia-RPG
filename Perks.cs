@@ -29,32 +29,27 @@ namespace ARPG
                 UnbuffItem(Side.Left);
             if (itemRight && itemRight.handlers.Count is 0)
                 UnbuffItem(Side.Right);
-            if (enhancingLeft || enhancingRight)
-            {
-                if (Player.currentCreature.mana.currentFocus > (100 / StatManager.miscFocusLvl))
-                    Player.currentCreature.mana.currentFocus -= (100 / StatManager.miscFocusLvl) * Time.deltaTime;
-                else
-                {
-                    Dehance(Side.Left);
-                    Dehance(Side.Right);
-                }
-            }
         }
-
         private void ItemLeft_OnHeldActionEventLeft(RagdollHand ragdollHand, Handle handle, Interactable.Action action)
         {
-            throw new System.NotImplementedException();
+            if (action == Interactable.Action.AlternateUseStart)
+                Enhance(Side.Left);
+            if (action == Interactable.Action.AlternateUseStop)
+                Dehance(Side.Left);
         }
-
         private void ItemRight_OnHeldActionEventRight(RagdollHand ragdollHand, Handle handle, Interactable.Action action)
         {
-            throw new System.NotImplementedException();
+            if (action == Interactable.Action.AlternateUseStart)
+                Enhance(Side.Right);
+            if (action == Interactable.Action.AlternateUseStop)
+                Dehance(Side.Right);
         }
-
         void Dehance(Side side)
         {
             if (side == Side.Left)
             {
+                if (!itemLeft)
+                    return;
                 enhancingLeft = false;
                 itemLeft.rb.angularDrag = previousAngularLeft;
                 itemLeft.rb.drag = previousDragLeft;
@@ -62,6 +57,8 @@ namespace ARPG
             }
             else
             {
+                if (!itemRight)
+                    return;
                 enhancingRight = false;
                 itemRight.rb.angularDrag = previousAngularRight;
                 itemRight.rb.drag = previousDragRight;
@@ -72,6 +69,8 @@ namespace ARPG
         {
             if (side == Side.Left)
             {
+                if (!itemLeft)
+                    return;
                 enhancingLeft = true;
                 itemLeft.rb.angularDrag = previousAngularLeft / StatManager.miscFocusLvl;
                 itemLeft.rb.drag = previousDragLeft / StatManager.miscFocusLvl;
@@ -79,6 +78,8 @@ namespace ARPG
             }
             else
             {
+                if (!itemRight)
+                    return;
                 enhancingRight = true;
                 itemRight.rb.angularDrag = previousAngularRight / StatManager.miscFocusLvl;
                 itemRight.rb.drag = previousDragRight / StatManager.miscFocusLvl;
@@ -89,12 +90,16 @@ namespace ARPG
         {
             if (side == Side.Left)
             {
+                if (!itemLeft)
+                    return;
                 previousAngularLeft = itemLeft.rb.angularDrag;
                 previousDragLeft = itemLeft.rb.drag;
                 previousMassLeft = itemLeft.rb.mass;
             }
             else
             {
+                if (!itemRight)
+                    return;
                 previousAngularRight = itemRight.rb.angularDrag;
                 previousDragRight = itemRight.rb.angularDrag;
                 previousMassRight = itemRight.rb.mass;
@@ -104,6 +109,8 @@ namespace ARPG
         {
             if (side == Side.Left)
             {
+                if (!itemLeft)
+                    return;
                 itemLeft.rb.angularDrag = previousAngularLeft;
                 itemLeft.rb.drag = previousDragLeft;
                 itemLeft.OnHeldActionEvent -= ItemLeft_OnHeldActionEventLeft;
@@ -112,6 +119,8 @@ namespace ARPG
             }
             else
             {
+                if (!itemRight)
+                    return;
                 itemRight.rb.angularDrag = previousAngularRight;
                 itemRight.rb.drag = previousDragRight;
                 itemRight.OnHeldActionEvent -= ItemRight_OnHeldActionEventRight;
@@ -165,7 +174,9 @@ namespace ARPG
         void Update()
         {
             if (Player.currentCreature.currentHealth < Player.currentCreature.maxHealth)
-                Player.currentCreature.currentHealth += StatManager.combatHealthLvl * 0.01f;
+            {
+                Player.currentCreature.currentHealth += (StatManager.combatHealthLvl * 0.01f) * Time.deltaTime;
+            }
         }
     }
 }
